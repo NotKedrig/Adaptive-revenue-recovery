@@ -39,12 +39,22 @@ class RecoveryState(TypedDict, total=False):
     safety_cleared: bool
     safety_flags: list[str]
     
-    # Strategy & Action (Phase 3)
+    # Strategy & Action (Phase 3 & 4)
     strategy: dict
     approved_strategy: dict
     policy_decision: dict
     action_request: dict
     action_result: dict
+    
+    # Phase 4: History & Accumulation
+    strategy_history: Annotated[Sequence[dict], operator.add]
+    action_history: Annotated[Sequence[dict], operator.add]
+    outcome_history: Annotated[Sequence[dict], operator.add]
+    latest_outcome: dict
+    recovery_signal: str
+    
+    # Virtual Time for deterministic simulation
+    simulated_time_hours: int
 
     # Workflow context
     attempt_count: int

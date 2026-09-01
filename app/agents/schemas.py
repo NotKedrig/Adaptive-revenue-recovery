@@ -53,6 +53,34 @@ class PolicyDecision(BaseModel):
     )
 
 
+class RecoveryOutcome(BaseModel):
+    """The detector's interpretation of a simulated action result."""
+    outcome_category: str = Field(
+        ...,
+        description="e.g., 'recovered', 'failed_transient', 'failed_permanent', 'customer_responded', 'customer_did_not_respond', 'retry_exhausted'"
+    )
+    is_terminal: bool = Field(
+        default=False,
+        description="True if this outcome terminates the recovery loop."
+    )
+    escalate_to_human: bool = Field(
+        default=False,
+        description="True if the terminal outcome requires human escalation rather than simply stopping."
+    )
+    details: str = Field(
+        default="",
+        description="Additional context about the outcome."
+    )
+
+
+class RecoverySignal(BaseModel):
+    """Explicit signals driving future strategy decisions."""
+    signal_type: str
+    timestamp: str
+    source_action: str
+    context: dict = Field(default_factory=dict)
+
+
 class RecoveryActionRequest(BaseModel):
     """The structured payload sent to the execution/simulation engine."""
     payment_id: str

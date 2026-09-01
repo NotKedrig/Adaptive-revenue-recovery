@@ -56,9 +56,9 @@ def action_node(state: RecoveryState) -> Dict[str, Any]:
             attempt_id = None
 
     # 3. Execute via Simulation Engine
-    # Note: In a production app this would call real external providers.
     engine = SimulationEngine()
-    result = engine.execute_action(request)
+    current_time = state.get("simulated_time_hours", 0)
+    result, new_time = engine.execute_action(request, current_time)
 
     # 4. Update RecoveryAttempt result
     if attempt_id:
@@ -69,13 +69,24 @@ def action_node(state: RecoveryState) -> Dict[str, Any]:
                 attempt.response_payload = result.model_dump()
                 db.commit()
 
+    # Phase 4: History Accumulation
+    action_history = list(state.get("action_history") or [])
+    action_history.append(request.model_dump())
+    
+    strategy_history = list(state.get("strategy_history") or [])
+    if strategy:
+        strategy_history.append(strategy)
+
     return {
         "action_request": request.model_dump(),
         "action_result": result.model_dump(),
         "attempt_count": state.get("attempt_count", 0) + 1,
         "case_status": result.simulated_outcome,
+        "simulated_time_hours": new_time,
+        "action_history": action_history,
+        "strategy_history": strategy_history,
         "messages": [{
             "role": "system",
-            "content": f"Action Executed: {action_type}. Outcome: {result.simulated_outcome}. Success: {result.success}"
+            "content": f"Action Executed: {action_type} at T+{new_time}h. Outcome: {result.simulated_outcome}. Success: {result.success}"
         }]
     }

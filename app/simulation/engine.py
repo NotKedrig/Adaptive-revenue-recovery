@@ -129,38 +129,73 @@ class SimulationEngine:
         logger.info(f"Loaded payment event {event.payment_id} → case {case_id}")
         return case_id
 
-    def execute_action(self, request: Any) -> Any:
+    def execute_action(self, request: Any, simulated_time_hours: int = 0) -> Any:
         """
-        Executes a Phase 3 RecoveryActionRequest and returns a RecoveryActionResult.
+        Executes a Phase 4 RecoveryActionRequest and returns a RecoveryActionResult.
+        Uses virtual time and deterministic state transitions.
         """
         from app.agents.schemas import RecoveryActionResult
         import datetime
         import logging
         
         logger = logging.getLogger(__name__)
-        logger.info(f"SimulationEngine executing action: {request.action_type} for payment {request.payment_id}")
+        logger.info(f"SimulationEngine executing action: {request.action_type} for payment {request.payment_id} at virtual time {simulated_time_hours}h")
+        
+        # Advance virtual time if a delay is requested
+        action_delay = request.delay_hours if hasattr(request, "delay_hours") and request.delay_hours else 0
+        current_virtual_time = simulated_time_hours + action_delay
         
         success = False
         outcome = "action_failed"
         customer_response = None
         
-        # Simple deterministic resolution
-        if request.action_type == "immediate_retry" or request.action_type == "delayed_retry":
-            roll = self._rng.random()
-            if roll > 0.4:
-                success = True
-                outcome = "recovery_successful"
+        roll = self._rng.random()
+        
+        # To simulate state-dependent outcomes, we look at the action and some context.
+        # In a real app we'd fetch the case. Here we derive a fake failure category from the payment_id for demo.
+        failure_category = "transient_technical" 
+        if "nsf" in request.payment_id:
+            failure_category = "transient_customer"
+        elif "perm" in request.payment_id:
+            failure_category = "permanent"
+
+        if request.action_type in ["immediate_retry", "delayed_retry"]:
+            if failure_category == "transient_technical":
+                # immediate_retry fails, delayed_retry succeeds (if delayed enough)
+                if request.action_type == "immediate_retry":
+                    outcome = "recovery_failed"
+                else:
+                    if action_delay >= 4:
+                        success = True
+                        outcome = "recovery_successful"
+                    else:
+                        outcome = "recovery_failed"
+            elif failure_category == "transient_customer":
+                if current_virtual_time >= 48:
+                    success = True
+                    outcome = "recovery_successful"
+                else:
+                    outcome = "recovery_failed"
             else:
                 outcome = "recovery_failed"
-                
-        elif request.action_type == "payment_method_update_request":
-            success = True
-            outcome = "customer_notified"
-            customer_response = "Customer received link to update payment method."
-            
+
         elif request.action_type == "payment_reminder":
             success = True
             outcome = "reminder_sent"
+            if request.channel == "sms":
+                # SMS has higher response rate
+                if roll > 0.2:
+                    customer_response = "clicked_link"
+            else:
+                # Email lower response rate
+                if roll > 0.6:
+                    customer_response = "clicked_link"
+                    
+        elif request.action_type == "payment_method_update_request":
+            success = True
+            outcome = "customer_notified"
+            if roll > 0.5:
+                customer_response = "updated_payment_method"
             
         elif request.action_type == "stop_recovery":
             success = True
@@ -169,18 +204,13 @@ class SimulationEngine:
         elif request.action_type == "escalate_to_human":
             success = True
             outcome = "escalated"
-            
-        elif request.action_type == "request_new_payment_method":
-            success = True
-            outcome = "customer_notified"
-            customer_response = "Requested new payment method from customer."
 
         return RecoveryActionResult(
             success=success,
             simulated_outcome=outcome,
             customer_response=customer_response,
-            timestamp=datetime.datetime.utcnow().isoformat()
-        )
+            timestamp=datetime.datetime.now(datetime.UTC).isoformat()
+        ), current_virtual_time
 
     def execute_recovery_action(
         self,
