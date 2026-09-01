@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { QueueItem, QueueItemProps } from '../components/QueueItem';
+import { QueueItem } from '../components/QueueItem';
+import type { QueueItemProps } from '../components/QueueItem';
 import { CaseTimeline } from '../components/CaseTimeline';
 
 interface Metrics {

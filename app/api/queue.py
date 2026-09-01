@@ -85,7 +85,7 @@ def get_live_queue():
     """Returns cases that are open/active."""
     with get_session() as db:
         cases = db.query(RecoveryCase).join(Payment).filter(
-            RecoveryCase.status == "open"
+            RecoveryCase.status != "recovered"
         ).all()
         
         results = []
@@ -156,8 +156,12 @@ def get_case_timeline(case_id: str):
                     summary = f"Strategy Modified: {data.get('mutated_action')}"
                     status = "warning"
                 details = data.get('reason', '')
-            elif e.event_type == "action_executed" or e.event_type == "recovery_signal":
-                # For Phase 4 we use recovery_signal primarily
+            elif e.event_type == "action_executed":
+                action = data.get("action", "")
+                result = data.get("result", {})
+                summary = f"Action Executed: {action}"
+                details = f"Outcome: {result.get('simulated_outcome', 'unknown')}"
+            elif e.event_type == "recovery_signal":
                 sig_type = data.get('signal_type', '')
                 summary = f"Signal Detected: {sig_type}"
                 details = str(data.get('context', ''))
@@ -165,6 +169,10 @@ def get_case_timeline(case_id: str):
                     status = "success"
                 elif "fail" in sig_type:
                     status = "error"
+            elif e.event_type == "adaptive_transition":
+                summary = f"Strategy Changed to: {data.get('new_strategy_action')}"
+                details = data.get('transition_reason', '')
+                status = "warning"
             else:
                 summary = str(e.event_type)
                 

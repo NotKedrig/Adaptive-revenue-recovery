@@ -375,6 +375,21 @@ def diagnosis_node(state: RecoveryState) -> dict:
     LangGraph node: runs the diagnosis agent and updates RecoveryState.
     """
     diagnosis = run_diagnosis(state)
+    
+    # Log to DB Event sourcing
+    from app.db.state.db import get_session
+    from app.db.state.models import RecoveryCase, RecoveryEvent
+    with get_session() as db:
+        case = db.query(RecoveryCase).filter_by(payment_id=state.get("payment_id")).first()
+        if case:
+            event = RecoveryEvent(
+                case_id=case.case_id,
+                event_type="diagnosis",
+                agent_name="diagnosis_agent",
+                event_data=diagnosis.model_dump()
+            )
+            db.add(event)
+            db.commit()
 
     return {
         "diagnosis": diagnosis.model_dump(),

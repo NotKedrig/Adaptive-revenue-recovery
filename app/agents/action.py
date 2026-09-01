@@ -60,13 +60,25 @@ def action_node(state: RecoveryState) -> Dict[str, Any]:
     current_time = state.get("simulated_time_hours", 0)
     result, new_time = engine.execute_action(request, current_time)
 
-    # 4. Update RecoveryAttempt result
+    # 4. Update RecoveryAttempt result and log RecoveryEvent
     if attempt_id:
         with get_session() as db:
             attempt = db.query(RecoveryAttempt).get(attempt_id)
             if attempt:
                 attempt.status = "success" if result.success else "failed"
                 attempt.response_payload = result.model_dump()
+                
+                event = RecoveryEvent(
+                    case_id=attempt.case_id,
+                    event_type="action_executed",
+                    agent_name="action_executor",
+                    event_data={
+                        "action": action_type,
+                        "result": result.model_dump()
+                    }
+                )
+                db.add(event)
+                
                 db.commit()
 
     # Phase 4: History Accumulation

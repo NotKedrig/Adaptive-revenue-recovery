@@ -127,7 +127,7 @@ def adaptive_planner_node(state: RecoveryState) -> Dict[str, Any]:
     }
 
     from app.db.state.db import get_session
-    from app.db.state.models import RecoveryCase, AuditLog
+    from app.db.state.models import RecoveryCase, AuditLog, RecoveryEvent
     with get_session() as db:
         case = db.query(RecoveryCase).filter_by(payment_id=state.get("payment_id")).first()
         if case:
@@ -138,6 +138,14 @@ def adaptive_planner_node(state: RecoveryState) -> Dict[str, Any]:
                 details=transition_record
             )
             db.add(audit)
+            
+            event = RecoveryEvent(
+                case_id=case.case_id,
+                event_type="adaptive_transition",
+                agent_name="adaptive_planner",
+                event_data=transition_record
+            )
+            db.add(event)
             db.commit()
 
     return {

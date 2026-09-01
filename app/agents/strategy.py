@@ -88,6 +88,21 @@ def strategy_node(state: RecoveryState) -> Dict[str, Any]:
     )
 
     strategy = _plan_strategy(diagnosis, attempt_count)
+    
+    # Log to DB Event sourcing
+    from app.db.state.db import get_session
+    from app.db.state.models import RecoveryCase, RecoveryEvent
+    with get_session() as db:
+        case = db.query(RecoveryCase).filter_by(payment_id=state.get("payment_id")).first()
+        if case:
+            event = RecoveryEvent(
+                case_id=case.case_id,
+                event_type="strategy_proposed",
+                agent_name="strategy_planner",
+                event_data=strategy.model_dump()
+            )
+            db.add(event)
+            db.commit()
 
     return {
         "strategy": strategy.model_dump(),

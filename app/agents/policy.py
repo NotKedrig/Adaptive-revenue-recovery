@@ -85,9 +85,9 @@ def policy_node(state: RecoveryState) -> Dict[str, Any]:
 
     content = f"Policy check passed: {decision.reason}" if decision.allowed else f"Policy check FAILED: {decision.reason}. Mutated action to: {decision.mutated_action}"
     
-    # Save the decision to the DB AuditLog
+    # Save the decision to the DB AuditLog and RecoveryEvent
     from app.db.state.db import get_session
-    from app.db.state.models import AuditLog, RecoveryCase
+    from app.db.state.models import AuditLog, RecoveryCase, RecoveryEvent
     with get_session() as db:
         case = db.query(RecoveryCase).filter_by(payment_id=state.get("payment_id")).first()
         if case:
@@ -103,6 +103,14 @@ def policy_node(state: RecoveryState) -> Dict[str, Any]:
                 }
             )
             db.add(audit)
+            
+            event = RecoveryEvent(
+                case_id=case.case_id,
+                event_type="policy_decision",
+                agent_name="policy_guard",
+                event_data=decision.model_dump()
+            )
+            db.add(event)
             db.commit()
 
     # Create approved_strategy, leaving original untouched
