@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+# AI Revenue Recovery System Local POC — pytest configuration
+testpaths    = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts      = "-v --tb=short"
+log_cli      = true
+log_cli_level = "WARNING"
+# RAG tests load sentence-transformers (~2 min for first download, fast after)
+# No hard timeout set — let the model download complete naturally.
