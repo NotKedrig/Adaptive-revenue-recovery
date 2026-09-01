@@ -80,7 +80,7 @@ def outcome_node(state: RecoveryState) -> Dict[str, Any]:
     outcome_history = list(state.get("outcome_history") or [])
     outcome_history.append(outcome.model_dump())
 
-    # Log to DB Event sourcing
+    # Log to DB Event sourcing and update Case Status
     from app.db.state.db import get_session
     from app.db.state.models import RecoveryCase, RecoveryEvent
     with get_session() as db:
@@ -93,6 +93,16 @@ def outcome_node(state: RecoveryState) -> Dict[str, Any]:
                 event_data=signal.model_dump()
             )
             db.add(event)
+            
+            # Update case status if terminal
+            if is_terminal:
+                if outcome_category == "recovered":
+                    case.status = "recovered"
+                elif escalate:
+                    case.status = "escalated"
+                else:
+                    case.status = "failed"
+            
             db.commit()
 
     return {
