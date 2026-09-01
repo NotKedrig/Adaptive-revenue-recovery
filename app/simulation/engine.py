@@ -129,6 +129,59 @@ class SimulationEngine:
         logger.info(f"Loaded payment event {event.payment_id} → case {case_id}")
         return case_id
 
+    def execute_action(self, request: Any) -> Any:
+        """
+        Executes a Phase 3 RecoveryActionRequest and returns a RecoveryActionResult.
+        """
+        from app.agents.schemas import RecoveryActionResult
+        import datetime
+        import logging
+        
+        logger = logging.getLogger(__name__)
+        logger.info(f"SimulationEngine executing action: {request.action_type} for payment {request.payment_id}")
+        
+        success = False
+        outcome = "action_failed"
+        customer_response = None
+        
+        # Simple deterministic resolution
+        if request.action_type == "immediate_retry" or request.action_type == "delayed_retry":
+            roll = self._rng.random()
+            if roll > 0.4:
+                success = True
+                outcome = "recovery_successful"
+            else:
+                outcome = "recovery_failed"
+                
+        elif request.action_type == "payment_method_update_request":
+            success = True
+            outcome = "customer_notified"
+            customer_response = "Customer received link to update payment method."
+            
+        elif request.action_type == "payment_reminder":
+            success = True
+            outcome = "reminder_sent"
+            
+        elif request.action_type == "stop_recovery":
+            success = True
+            outcome = "recovery_stopped"
+            
+        elif request.action_type == "escalate_to_human":
+            success = True
+            outcome = "escalated"
+            
+        elif request.action_type == "request_new_payment_method":
+            success = True
+            outcome = "customer_notified"
+            customer_response = "Requested new payment method from customer."
+
+        return RecoveryActionResult(
+            success=success,
+            simulated_outcome=outcome,
+            customer_response=customer_response,
+            timestamp=datetime.datetime.utcnow().isoformat()
+        )
+
     def execute_recovery_action(
         self,
         request: RecoveryActionRequest,

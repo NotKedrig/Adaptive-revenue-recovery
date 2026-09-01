@@ -39,7 +39,14 @@ class RecoveryState(TypedDict, total=False):
     safety_cleared: bool
     safety_flags: list[str]
     
-    # Metadata & Audit
+    # Strategy & Action (Phase 3)
+    strategy: dict
+    approved_strategy: dict
+    policy_decision: dict
+    action_request: dict
+    action_result: dict
+
+    # Workflow context
     attempt_count: int
     max_attempts: int
     runtime_metadata: Annotated[Sequence[dict], operator.add]

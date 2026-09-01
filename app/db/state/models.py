@@ -209,6 +209,7 @@ class RecoveryAttempt(Base):
     )
     
     action_type = Column(String(64), nullable=False) # retry, notify_email, notify_sms
+    channel = Column(String(64), nullable=True)      # email, sms, whatsapp
     status = Column(String(64), nullable=False, default="pending") # pending, success, failure
     
     request_payload = Column(JSON, nullable=True)
