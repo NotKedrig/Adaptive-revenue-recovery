@@ -1,15 +1,6 @@
-import React from 'react';
-import { RecoveryQueue } from './pages/RecoveryQueue';
-import './index.css';
+import { RecoveryQueuePage } from "./pages/RecoveryQueuePage";
+import "./index.css";
 
-const App: React.FC = () => {
-  return (
-    <div className="app-layout">
-      <main className="main-content">
-        <RecoveryQueue />
-      </main>
-    </div>
-  );
-};
-
-export default App;
+export default function App() {
+  return <RecoveryQueuePage />;
+}

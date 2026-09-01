@@ -52,15 +52,15 @@ def _plan_strategy(diagnosis_dict: Dict[str, Any], attempt_count: int) -> Recove
             )
 
     if category == "transient_customer":
-        # e.g., insufficient funds
+        # e.g., insufficient funds — remind first; retry after observed outcome.
         return RecoveryStrategy(
-            action="delayed_retry",
-            channel="sms",  # notify customer
-            retry_timing_hours=48,  # typically wait for salary/deposit
+            action="payment_reminder",
+            channel="sms",
+            retry_timing_hours=48,
             maximum_attempts=3,
             escalation_condition="max_attempts_reached",
             expected_outcome="funds_available",
-            rationale="Insufficient funds requires time for customer deposit. SMS reminder sent."
+            rationale="An immediate retry is unlikely to succeed. Send an SMS reminder and retry after the customer has time to fund the account.",
         )
 
     # Fallback default

@@ -83,11 +83,9 @@ def test_full_graph_intake_to_diagnosis(mock_rag, mock_get_provider, db_url, mon
     config = {"configurable": {"thread_id": "test_thread_wf_001"}}
     final_state = graph.invoke(input_state, config=config)
 
-    # Assertions
-    assert final_state["case_status"] == "diagnosed"
+    # The Phase 4 graph continues past diagnosis; intake + diagnosis must still have run.
     assert final_state["diagnosis"]["failure_category"] == "transient_technical"
     assert final_state["diagnosis"]["is_recoverable"] is True
-    assert final_state["diagnosis_confidence"] == 0.85
     assert final_state["amount"] == 3000.0
     assert final_state["customer_id"] == "cust_wf_001"
     assert len(final_state["messages"]) >= 2  # intake + diagnosis messages

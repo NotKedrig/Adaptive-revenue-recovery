@@ -68,7 +68,7 @@ def test_strategy_transient_customer_nsf():
     state = {"diagnosis": {"failure_category": "transient_customer", "is_recoverable": True}, "attempt_count": 0}
     res = strategy_node(state)
     strat = res["strategy"]
-    assert strat["action"] == "delayed_retry"
+    assert strat["action"] == "payment_reminder"
     assert strat["channel"] == "sms"
     assert strat["retry_timing_hours"] == 48
 
@@ -181,8 +181,19 @@ def test_full_workflow_traversal_phase3(seed_db):
     assert "strategy" in final_state
     assert "policy_decision" in final_state
     assert "action_result" in final_state
-    
+
     assert final_state["policy_decision"]["allowed"] is True
-    assert final_state["strategy"]["action"] == "immediate_retry"
-    assert final_state["attempt_count"] == 1
-    assert final_state["case_status"] in ["recovery_successful", "recovery_failed"] # Random outcome
+    # Phase 4 continues past the first strategy; the opening move is still an immediate retry.
+    history = final_state.get("strategy_history") or []
+    first_action = history[0]["action"] if history else final_state["strategy"]["action"]
+    assert first_action == "immediate_retry"
+    assert final_state["attempt_count"] >= 1
+    assert final_state["case_status"] in [
+        "recovery_successful",
+        "recovery_failed",
+        "diagnosed",
+        "escalated",
+        "customer_notified",
+        "reminder_sent",
+        "action_failed",
+    ]

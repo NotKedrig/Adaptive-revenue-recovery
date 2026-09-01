@@ -38,7 +38,7 @@ def action_node(state: RecoveryState) -> Dict[str, Any]:
 
     # 2. Persist RecoveryAttempt to DB
     from app.db.state.db import get_session
-    from app.db.state.models import RecoveryCase, RecoveryAttempt
+    from app.db.state.models import RecoveryCase, RecoveryAttempt, RecoveryEvent
     with get_session() as db:
         case = db.query(RecoveryCase).filter_by(payment_id=payment_id).first()
         if case:
