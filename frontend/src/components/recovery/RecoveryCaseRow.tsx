@@ -1,7 +1,7 @@
 import type { QueueItem } from "../../types/recovery";
 import { formatHours, formatINR } from "../../lib/format";
 import { humanizeAction, humanizeFailure } from "../../lib/events";
-import { displayStatus } from "../../lib/status";
+import { displayStatus, isNonRecoverableFailure } from "../../lib/status";
 import { CaseStatus } from "./CaseStatus";
 
 interface Props {
@@ -21,6 +21,7 @@ export function RecoveryCaseRow({ item, selected, onOpen, recoveredView }: Props
   const status = displayStatus(item);
   const failure = humanizeFailure(item.failure_type, item.failure_reason);
   const latest = latestActionCopy(item);
+  const nonRecoverable = isNonRecoverableFailure(item);
 
   return (
     <button
@@ -50,23 +51,28 @@ export function RecoveryCaseRow({ item, selected, onOpen, recoveredView }: Props
           </span>
         ) : (
           <>
-            {item.attempt_count > 0 && (
+            {/* Non-recoverable: show clear label, no action hints */}
+            {nonRecoverable && !item.workflow_started && (
+              <span className="meta-non-recoverable">Non-recoverable · Escalation required</span>
+            )}
+            {/* Recoverable cases: show attempt progress and next action */}
+            {!nonRecoverable && item.attempt_count > 0 && (
               <span>
                 Attempt {item.attempt_count}
                 {item.max_attempts ? ` of ${item.max_attempts}` : ""}
               </span>
             )}
-            {latest && <span>{latest}</span>}
-            {item.next_action && (
+            {!nonRecoverable && latest && <span>{latest}</span>}
+            {!nonRecoverable && item.next_action && (
               <span>
                 Next action · {humanizeAction(item.next_action)}
                 {item.next_action_delay_hours ? ` in ${item.next_action_delay_hours}h` : ""}
               </span>
             )}
-            {!item.next_action && item.workflow_started && item.can_advance && (
+            {!nonRecoverable && !item.next_action && item.workflow_started && item.can_advance && (
               <span>Next action · Continue recovery</span>
             )}
-            {!item.workflow_started && <span>Waiting to run recovery</span>}
+            {!nonRecoverable && !item.workflow_started && <span>Ready · Open to start recovery</span>}
           </>
         )}
       </div>

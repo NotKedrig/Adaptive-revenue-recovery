@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Header } from "../components/layout/Header";
 import { MetricsStrip } from "../components/metrics/MetricsStrip";
 import { RecoveryCaseRow } from "../components/recovery/RecoveryCaseRow";
@@ -13,6 +13,17 @@ export function RecoveryQueuePage() {
   const consoleState = useRecoveryConsole();
   const [tab, setTab] = useState<"active" | "recovered">("active");
   const [confirmReset, setConfirmReset] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    return document.documentElement.getAttribute("data-theme") === "dark";
+  });
+
+  const toggleTheme = useCallback(() => {
+    setDarkMode((prev) => {
+      const next = !prev;
+      document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
+      return next;
+    });
+  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -30,6 +41,8 @@ export function RecoveryQueuePage() {
         lastUpdated={consoleState.lastUpdated}
         resetting={consoleState.demoLoading}
         onReset={() => setConfirmReset(true)}
+        darkMode={darkMode}
+        onToggleTheme={toggleTheme}
       />
 
       <main className={`page ${consoleState.selected ? "subdued" : ""}`}>

@@ -2,9 +2,11 @@ interface Props {
   lastUpdated: string | null;
   onReset: () => void;
   resetting: boolean;
+  darkMode: boolean;
+  onToggleTheme: () => void;
 }
 
-export function Header({ lastUpdated, onReset, resetting }: Props) {
+export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleTheme }: Props) {
   return (
     <header className="app-header">
       <div className="brand">
@@ -19,6 +21,16 @@ export function Header({ lastUpdated, onReset, resetting }: Props) {
         <div className="header-updated">
           {lastUpdated ? `Last updated: ${lastUpdated}` : "Waiting for data"}
         </div>
+        <button
+          id="theme-toggle-btn"
+          type="button"
+          className="theme-toggle"
+          onClick={onToggleTheme}
+          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
+          title={darkMode ? "Light mode" : "Dark mode"}
+        >
+          {darkMode ? "☀" : "🌙"}
+        </button>
         <button type="button" className="header-reset" onClick={onReset} disabled={resetting}>
           {resetting ? "Loading demo…" : "Reset demo"}
         </button>

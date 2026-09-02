@@ -224,40 +224,63 @@ export function renderTimelineEvent(event: TimelineEvent): RenderedEvent {
       let body = humanizeOutcome(signal, simulated);
       if (signal === "no_response") {
         title = "Customer did not respond";
-        body = "Customer did not respond to the payment reminder.";
+        body = "Customer did not respond to the payment reminder. The adaptive planner will select the next recovery action.";
       } else if (signal === "customer_response") {
         title = "Customer responded";
         body = response
-          ? `Customer response recorded: ${response.replace(/_/g, " ")}.`
-          : "The customer responded to the recovery action.";
+          ? `Customer response: ${response.replace(/_/g, " ")}. The adaptive planner will determine the next step.`
+          : "The customer responded to the recovery action. The next strategy will be applied.";
       } else if (signal === "transient_failure") {
         title = "Recovery attempt unsuccessful";
-        body = "Payment retry failed. Temporary failure persisted.";
+        body = "Payment retry failed. Temporary failure persisted. The adaptive planner will reassess the strategy.";
       } else if (recovered) {
         title = "Payment recovered";
         body = "The simulated payment authorised successfully.";
       } else if (signal === "permanent_failure") {
         title = "Permanent failure";
-        body = "Automated recovery is no longer appropriate.";
+        body = "Automated recovery is no longer appropriate. Case will be escalated.";
+      }
+      // Surface the next-retry timing from context when available (NSF adaptive loop)
+      const retryAfterHours = asNumber((context.retry_after_hours ?? data.retry_after_hours) as unknown);
+      const facts: { label: string; value: string }[] = [];
+      if ((signal === "no_response" || signal === "customer_response") && retryAfterHours && retryAfterHours > 0) {
+        facts.push({ label: "Next retry in", value: `${retryAfterHours}h` });
+        body += ` Retry in ${retryAfterHours}h.`;
       }
       return {
         actor,
         title,
         body,
-        facts: [],
+        facts,
         tone: recovered ? "success" : signal.includes("fail") || signal === "permanent_failure" ? "danger" : "neutral",
       };
     }
-    case "adaptive_transition":
+    case "adaptive_transition": {
+      const prevAction = asString(data.previous_strategy_action);
+      const newAction = asString(data.new_strategy_action);
+      const transitionDelay = asNumber(data.retry_timing_hours);
+      let adaptBody = asString(data.transition_reason) ||
+        "The previous strategy did not produce a recovery signal. The planner selected a new approach.";
+      if (prevAction === "payment_reminder" || prevAction === "notify_customer") {
+        adaptBody = adaptBody
+          ? adaptBody
+          : "Customer did not respond to the SMS reminder. The adaptive planner has scheduled a direct payment retry.";
+        if (transitionDelay && transitionDelay > 0) {
+          adaptBody += ` Next retry scheduled in ${transitionDelay}h.`;
+        }
+      }
       return {
         actor,
-        title: "Strategy changed",
-        body: asString(data.transition_reason) || "The previous strategy did not produce a recovery signal. The planner changed the next action.",
-        facts: [],
+        title: "Adaptive planner · Strategy changed",
+        body: adaptBody,
+        facts: transitionDelay && transitionDelay > 0
+          ? [{ label: "Next retry in", value: `${transitionDelay}h` }]
+          : [],
         tone: "warning",
-        previousStrategy: humanizeAction(asString(data.previous_strategy_action)),
-        newStrategy: humanizeAction(asString(data.new_strategy_action)),
+        previousStrategy: humanizeAction(prevAction),
+        newStrategy: humanizeAction(newAction),
       };
+    }
     case "escalation":
       return {
         actor,

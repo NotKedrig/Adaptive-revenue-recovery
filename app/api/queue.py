@@ -413,17 +413,7 @@ def populate_demo_data():
 
     engine = SimulationEngine(seed=42)
     events = [
-        SimulatedPaymentEvent(
-            payment_id="pay_nsf_002",
-            merchant_id="merchant_001",
-            customer_id="customer_nsf_002",
-            amount=8200.0,
-            currency="INR",
-            payment_method="card",
-            failure_code="insufficient_funds",
-            failure_reason="Insufficient funds",
-            timestamp=datetime.now(timezone.utc).isoformat(),
-        ),
+        # Case 1: bank_timeout — transient technical failure → single-strategy successful recovery
         SimulatedPaymentEvent(
             payment_id="pay_tech_001",
             merchant_id="merchant_001",
@@ -432,9 +422,22 @@ def populate_demo_data():
             currency="INR",
             payment_method="card",
             failure_code="bank_timeout",
-            failure_reason="Bank timeout",
+            failure_reason="Bank timeout — issuing bank did not respond",
             timestamp=datetime.now(timezone.utc).isoformat(),
         ),
+        # Case 2: insufficient_funds — transient customer failure → adaptive recovery in progress
+        SimulatedPaymentEvent(
+            payment_id="pay_nsf_002",
+            merchant_id="merchant_001",
+            customer_id="customer_nsf_002",
+            amount=8200.0,
+            currency="INR",
+            payment_method="card",
+            failure_code="insufficient_funds",
+            failure_reason="Insufficient funds — customer balance low at time of charge",
+            timestamp=datetime.now(timezone.utc).isoformat(),
+        ),
+        # Case 3: invalid_card — permanent failure → non-recoverable, no automated retry
         SimulatedPaymentEvent(
             payment_id="pay_perm_003",
             merchant_id="merchant_001",
@@ -443,7 +446,7 @@ def populate_demo_data():
             currency="INR",
             payment_method="card",
             failure_code="invalid_card",
-            failure_reason="Invalid card",
+            failure_reason="Invalid card — card number or CVV is permanently invalid",
             timestamp=datetime.now(timezone.utc).isoformat(),
         ),
     ]

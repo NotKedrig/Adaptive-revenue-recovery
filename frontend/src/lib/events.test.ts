@@ -102,7 +102,7 @@ describe("event presentation", () => {
     );
     expect(rendered.previousStrategy).toBe("Immediate payment retry");
     expect(rendered.newStrategy).toBe("Delayed payment retry");
-    expect(rendered.title).toBe("Strategy changed");
+    expect(rendered.title).toBe("Adaptive planner · Strategy changed");
   });
 
   it("renders action and outcome without raw dictionaries", () => {
@@ -156,8 +156,8 @@ describe("status and scenario", () => {
     const adaptive = scenarioFromState(item({ status: "recovered" }), [
       event({ event_type: "adaptive_transition" }),
     ]);
-    expect(adaptive?.label).toBe("Adaptive recovery");
+    expect(adaptive?.label).toBe("Adaptive recovery · Successful");
     const escalated = scenarioFromState(item({ status: "escalated" }), []);
-    expect(escalated?.label).toBe("Escalated");
+    expect(escalated?.label).toBe("Non-recoverable · Escalated");
   });
 });

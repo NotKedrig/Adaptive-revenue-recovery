@@ -3,6 +3,9 @@
   --color-primary-soft: #16324a;
   --color-interaction: #1b4f9c;
   --color-interaction-hover: #163f7c;
+  /* Razorpay-inspired accent — vivid red used only on primary CTAs and active indicators */
+  --color-accent: #e5383b;
+  --color-accent-hover: #c1272d;
   --color-success: #1f7a4d;
   --color-success-soft: #e7f4ec;
   --color-danger: #b42318;
@@ -22,7 +25,31 @@
   --header-height: 64px;
   --font: "Segoe UI Variable", "Segoe UI", system-ui, -apple-system, sans-serif;
   --font-mono: "Cascadia Mono", "Segoe UI Mono", ui-monospace, monospace;
-  --focus: 0 0 0 3px rgba(27, 79, 156, 0.28);
+  --focus: 0 0 0 3px rgba(229, 56, 59, 0.22);
+}
+
+/* ── Dark theme ─────────────────────────────────────────────── */
+[data-theme="dark"] {
+  --color-primary: #e8edf3;
+  --color-primary-soft: #c8d4e0;
+  --color-interaction: #5b9cf6;
+  --color-interaction-hover: #4a85dd;
+  --color-success: #34c77b;
+  --color-success-soft: #0d2e1e;
+  --color-danger: #f87171;
+  --color-danger-soft: #2d1212;
+  --color-warning: #fbbf24;
+  --color-warning-soft: #2d1f07;
+  --color-text: #e2eaf3;
+  --color-muted: #8da0b3;
+  --color-faint: #5c7080;
+  --color-border: #2a3a4a;
+  --color-surface: #111d2b;
+  --color-canvas: #0c1621;
+  --color-canvas-alt: #0f1d2c;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.45);
+  --focus: 0 0 0 3px rgba(229, 56, 59, 0.3);
 }
 
 * {
@@ -116,7 +143,7 @@ button:focus-visible,
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: var(--color-success);
+  background: var(--color-accent);
 }
 
 .header-updated {
@@ -233,8 +260,8 @@ button:focus-visible,
 }
 
 .tab.active {
-  color: var(--color-interaction);
-  border-bottom-color: var(--color-interaction);
+  color: var(--color-accent);
+  border-bottom-color: var(--color-accent);
 }
 
 .queue-row {
@@ -544,17 +571,18 @@ button:focus-visible,
 
 .btn-primary {
   width: 100%;
-  background: var(--color-interaction);
+  background: var(--color-accent);
   color: white;
   border: none;
   padding: 11px 14px;
   border-radius: 6px;
   font-weight: 650;
   font-size: 14px;
+  transition: background 0.15s ease;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: var(--color-interaction-hover);
+  background: var(--color-accent-hover);
 }
 
 .btn-primary:disabled {
@@ -796,4 +824,152 @@ button:focus-visible,
   .drawer {
     width: 100%;
   }
+}
+
+/* ── Theme toggle button ─────────────────────────────────────── */
+.theme-toggle {
+  background: none;
+  border: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 16px;
+  line-height: 1;
+  padding: 5px 9px;
+  border-radius: 6px;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.theme-toggle:hover {
+  background: var(--color-canvas-alt);
+  border-color: var(--color-faint);
+  color: var(--color-text);
+}
+
+/* ── Non-recoverable notice (drawer footer) ──────────────────── */
+.non-recoverable-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px 14px;
+  border: 1px solid #f0c9c5;
+  border-radius: 6px;
+  background: var(--color-danger-soft);
+}
+
+.non-recoverable-icon {
+  font-size: 16px;
+  color: var(--color-danger);
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+.non-recoverable-notice strong {
+  display: block;
+  font-size: 13px;
+  color: var(--color-danger);
+  margin-bottom: 4px;
+}
+
+.non-recoverable-notice p {
+  font-size: 12px;
+  color: var(--color-danger);
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── Non-recoverable callout (drawer header) ─────────────────── */
+.non-recoverable-header-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  background: var(--color-danger-soft);
+  border: 1px solid #f0c9c5;
+  border-radius: 6px;
+}
+
+.callout-icon {
+  font-size: 14px;
+  color: var(--color-danger);
+  flex-shrink: 0;
+}
+
+.non-recoverable-header-callout strong {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--color-danger);
+  margin-bottom: 3px;
+}
+
+.non-recoverable-header-callout p {
+  font-size: 12px;
+  color: var(--color-danger);
+  opacity: 0.85;
+  line-height: 1.5;
+  margin: 0;
+}
+
+/* ── NSF adaptive context block (drawer header) ──────────────── */
+.nsf-adaptive-context {
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  background: var(--color-canvas);
+  display: grid;
+  gap: 8px;
+}
+
+.nsf-context-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  justify-content: space-between;
+}
+
+.nsf-context-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-faint);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.nsf-context-row strong {
+  font-size: 13px;
+  text-align: right;
+}
+
+/* ── Queue row meta: non-recoverable badge ───────────────────── */
+.meta-non-recoverable {
+  color: var(--color-danger);
+  font-weight: 650;
+}
+
+/* ── Dark theme fine-tuning ──────────────────────────────────── */
+[data-theme="dark"] .queue-row:hover,
+[data-theme="dark"] .queue-row.selected {
+  background: #1a2d40;
+}
+
+[data-theme="dark"] .scenario-note {
+  background: #162030;
+}
+
+[data-theme="dark"] .adapt-card.new {
+  border-color: #2a4060;
+  background: #162030;
+}
+
+[data-theme="dark"] .nsf-adaptive-context {
+  background: #0f1d2c;
+}
+
+[data-theme="dark"] .non-recoverable-notice,
+[data-theme="dark"] .non-recoverable-header-callout {
+  border-color: #5a1f1f;
 }

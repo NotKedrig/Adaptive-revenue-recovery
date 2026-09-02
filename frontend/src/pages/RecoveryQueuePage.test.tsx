@@ -1,5 +1,5 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
-import { render, screen, waitFor, within } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { cleanup, render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RecoveryQueuePage } from "./RecoveryQueuePage";
 import * as api from "../services/api";
@@ -80,6 +80,11 @@ const perm = item({
 });
 
 describe("RecoveryQueuePage", () => {
+  afterEach(() => {
+    cleanup();
+    vi.clearAllMocks();
+  });
+
   beforeEach(() => {
     mocked.getMetrics.mockResolvedValue(metrics());
     mocked.getQueue.mockResolvedValue([nsf, tech, perm]);
@@ -187,12 +192,13 @@ describe("RecoveryQueuePage", () => {
     await userEvent.click(screen.getByRole("button", { name: /Open recovery case pay_nsf_002/ }));
 
     const workspace = await screen.findByRole("dialog", { name: "pay_nsf_002" });
-    expect(within(workspace).getByText("₹8,200")).toBeTruthy();
-    expect(within(workspace).getByText("Insufficient funds")).toBeTruthy();
+    expect(within(workspace).getAllByText("₹8,200").length).toBeGreaterThan(0);
+    expect(within(workspace).getAllByText("Insufficient funds").length).toBeGreaterThan(0);
     expect(within(workspace).getByText("Diagnosis agent")).toBeTruthy();
     expect(within(workspace).getByText("Strategy engine")).toBeTruthy();
     expect(within(workspace).getByText("Policy guard")).toBeTruthy();
-    expect(within(workspace).getByText(/SMS reminder/)).toBeTruthy();
+    expect(within(workspace).getByText("Outcome detector")).toBeTruthy();
+    expect(within(workspace).getAllByText(/SMS reminder/).length).toBeGreaterThan(0);
     expect(within(workspace).queryByText("{")).toBeNull();
 
     const recovered = item({
@@ -234,7 +240,7 @@ describe("RecoveryQueuePage", () => {
     await waitFor(() => {
       expect(mocked.advanceRecovery).toHaveBeenCalledWith("case_pay_nsf_002");
     });
-    expect(await screen.findByText("Strategy changed")).toBeTruthy();
+    expect(await screen.findByText("Adaptive planner · Strategy changed")).toBeTruthy();
     expect(screen.getByText("Previous strategy")).toBeTruthy();
     expect(screen.getByText("New strategy")).toBeTruthy();
     expect(screen.getByText("Recovered. Automated recovery is complete.")).toBeTruthy();
@@ -247,5 +253,73 @@ describe("RecoveryQueuePage", () => {
     expect(mocked.advanceRecovery).not.toHaveBeenCalled();
     expect(mocked.getQueue).toHaveBeenCalled();
     expect(mocked.getMetrics).toHaveBeenCalled();
+  });
+
+  it("shows non-recoverable notice for invalid_card case and no recovery button", async () => {
+    // Permanent failure case: invalid_card, workflow not started
+    const permCase = item({
+      case_id: "case_pay_perm_003",
+      payment_id: "pay_perm_003",
+      amount: 999,
+      failure_type: "invalid_card",
+      failure_reason: "Invalid card",
+      status: "open",
+      can_advance: true,
+      workflow_started: false,
+    });
+    mocked.getCase.mockResolvedValue(permCase);
+    mocked.getCaseTimeline.mockResolvedValue([]);
+
+    render(<RecoveryQueuePage />);
+    await screen.findByText("pay_perm_003");
+
+    // The queue row should show a non-recoverable label
+    expect(screen.getByText("Non-recoverable · Escalation required")).toBeTruthy();
+
+    // Open the case workspace
+    await userEvent.click(screen.getByRole("button", { name: /Open recovery case pay_perm_003/ }));
+    const workspace = await screen.findByRole("dialog", { name: "pay_perm_003" });
+
+    // Should show the non-recoverable notice, NOT a Run/Advance recovery button
+    expect(within(workspace).getByText("Non-recoverable failure")).toBeTruthy();
+    expect(within(workspace).queryByRole("button", { name: /Run recovery|Advance recovery/ })).toBeNull();
+
+    // No API call should have been made for advance
+    expect(mocked.advanceRecovery).not.toHaveBeenCalled();
+  });
+
+  it("shows escalated note for already-escalated permanent failure and no recovery button", async () => {
+    const escalatedCase = item({
+      case_id: "case_pay_perm_003",
+      payment_id: "pay_perm_003",
+      amount: 999,
+      failure_type: "invalid_card",
+      failure_reason: "Invalid card",
+      status: "escalated",
+      can_advance: false,
+      workflow_started: true,
+      attempt_count: 1,
+    });
+    mocked.getCase.mockResolvedValue(escalatedCase);
+    mocked.getCaseTimeline.mockResolvedValue([
+      timelineEvent({
+        id: 1,
+        event_type: "escalation",
+        metadata: {},
+      }),
+    ]);
+
+    render(<RecoveryQueuePage />);
+    await screen.findByText("pay_perm_003");
+
+    await userEvent.click(screen.getByRole("button", { name: /Open recovery case pay_perm_003/ }));
+    const workspace = await screen.findByRole("dialog", { name: "pay_perm_003" });
+
+    // Should show escalated terminal note
+    expect(
+      within(workspace).getByText(/Escalated — non-recoverable/i),
+    ).toBeTruthy();
+    // No recovery button
+    expect(within(workspace).queryByRole("button", { name: /Run recovery|Advance recovery/ })).toBeNull();
   });
 });
