@@ -32,10 +32,15 @@ export function ResultsPage({ darkMode, onToggleTheme, onViewChange }: Props) {
     };
   }, []);
 
+  let statusText = "Benchmark ready";
+  if (failed) statusText = "Benchmark unavailable";
+  else if (loading && !data) statusText = "Fetching evaluation…";
+
   return (
     <div className="app-shell">
       <Header
         lastUpdated={null}
+        statusText={statusText}
         onReset={() => {}}
         resetting={false}
         darkMode={darkMode}

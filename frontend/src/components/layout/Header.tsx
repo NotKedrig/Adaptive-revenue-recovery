@@ -6,9 +6,10 @@ interface Props {
   onToggleTheme: () => void;
   currentView?: "operations" | "results";
   onViewChange?: (view: "operations" | "results") => void;
+  statusText?: string | null;
 }
 
-export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleTheme, currentView, onViewChange }: Props) {
+export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleTheme, currentView, onViewChange, statusText }: Props) {
   return (
     <header className="app-header">
       <div className="brand">
@@ -38,7 +39,7 @@ export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleThem
           Local simulation
         </div>
         <div className="header-updated">
-          {lastUpdated ? `Last updated: ${lastUpdated}` : "Waiting for data"}
+          {statusText ? statusText : lastUpdated ? `Last updated: ${lastUpdated}` : "Waiting for data"}
         </div>
         <button
           id="theme-toggle-btn"
