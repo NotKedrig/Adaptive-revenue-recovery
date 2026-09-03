@@ -122,6 +122,7 @@ npm run dev
 
 # Frontend tests
 cd frontend
+npm install
 npm test
 ```
 
