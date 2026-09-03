@@ -217,6 +217,77 @@ button:focus-visible,
   color: var(--color-muted);
 }
 
+/* ── Baseline Callout (Phase 7A) ────────────────────────── */
+.baseline-callout {
+  margin: -12px 0 28px;
+  padding: 12px 16px;
+  background: var(--color-success-soft);
+  border: 1px solid rgba(31, 122, 77, 0.15); /* success color with opacity */
+  border-radius: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+[data-theme="dark"] .baseline-callout {
+  border-color: rgba(52, 199, 123, 0.2);
+}
+
+.baseline-callout--loading {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.baseline-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-muted);
+  opacity: 0.5;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.8; }
+}
+
+.baseline-kicker {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-accent);
+  font-weight: 750;
+  margin-bottom: 2px;
+}
+
+.baseline-main {
+  font-size: 14px;
+  color: var(--color-text);
+}
+
+.baseline-improvement {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.baseline-sep {
+  color: var(--color-faint);
+  margin: 0 4px;
+}
+
+.baseline-sub {
+  font-size: 13px;
+  color: var(--color-primary); /* increased contrast */
+  font-weight: 500;
+}
+
+
 .queue-panel {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -973,3 +1044,50 @@ button:focus-visible,
 [data-theme="dark"] .non-recoverable-header-callout {
   border-color: #5a1f1f;
 }
+
+/* ── Baseline callout (below metrics strip) ──────────────────── */
+.baseline-callout {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  margin: -4px 0 10px;
+  border-radius: 5px;
+  border: 1px solid var(--color-border);
+  background: var(--color-canvas-alt);
+  font-size: 12px;
+  color: var(--color-muted);
+  user-select: none;
+  transition: border-color 0.15s ease;
+}
+
+.baseline-callout--loading {
+  opacity: 0.6;
+}
+
+.baseline-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex-shrink: 0;
+}
+
+.baseline-improvement {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.baseline-sep {
+  color: var(--color-faint);
+}
+
+.baseline-sub {
+  color: var(--color-faint);
+}
+
+[data-theme="dark"] .baseline-callout {
+  background: #0f1d2c;
+  border-color: #2a3a4a;
+}
+  

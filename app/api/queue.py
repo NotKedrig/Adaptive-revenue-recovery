@@ -457,3 +457,32 @@ def populate_demo_data():
         message="Demo data loaded. 3 recovery scenarios ready.",
         case_ids=case_ids,
     )
+
+
+# ---------------------------------------------------------------------------
+# Baseline Comparison Endpoint (Phase 6)
+# ---------------------------------------------------------------------------
+
+@router.get(
+    "/baseline-comparison",
+    summary="Naive vs Adaptive recovery baseline comparison",
+    description=(
+        "Runs a deterministic 40-case evaluation comparing a naive single-retry "
+        "baseline against the adaptive Phase 4 recovery planner. "
+        "Fully local — no DB mutations, no external LLM calls. "
+        "Results are identical on every call (fixed seed)."
+    ),
+    tags=["evaluation"],
+)
+async def baseline_comparison():
+    """
+    Returns a deterministic comparison of recovered revenue for:
+    - Naive baseline (one immediate_retry, no adaptation)
+    - Adaptive system (Phase 4 diagnosis → strategy → policy → action → outcome → adaptive loop)
+
+    Uses a separate evaluation dataset (seed=777) that is entirely independent
+    of the live demo queue so it never mutates any case or metric in the database.
+    """
+    from app.evaluation.baseline import run_baseline_comparison
+    result = run_baseline_comparison()
+    return result.model_dump()

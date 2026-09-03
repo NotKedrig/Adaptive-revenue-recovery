@@ -59,3 +59,20 @@ export type DisplayStatus =
   | "recovered"
   | "escalated"
   | "stopped";
+
+export interface StrategyResult {
+  recovered_revenue: number;
+  recovery_rate_percent: number;
+}
+
+export interface BaselineComparison {
+  case_count: number;
+  total_revenue_at_risk: number;
+  naive: StrategyResult;
+  adaptive: StrategyResult;
+  improvement_percentage_points: number;
+  additional_revenue_recovered: number;
+  evaluation_seed: number;
+  external_llm_calls: boolean;
+  simulation_mode: string;
+}

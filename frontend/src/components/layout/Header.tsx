@@ -4,14 +4,33 @@ interface Props {
   resetting: boolean;
   darkMode: boolean;
   onToggleTheme: () => void;
+  currentView?: "operations" | "results";
+  onViewChange?: (view: "operations" | "results") => void;
 }
 
-export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleTheme }: Props) {
+export function Header({ lastUpdated, onReset, resetting, darkMode, onToggleTheme, currentView, onViewChange }: Props) {
   return (
     <header className="app-header">
       <div className="brand">
         <div className="brand-kicker">AI Revenue Recovery</div>
-        <div className="brand-title">Recovery Operations</div>
+        {currentView && onViewChange ? (
+          <nav className="view-switcher" aria-label="Main Navigation">
+            <button 
+              className={`view-btn ${currentView === 'operations' ? 'active' : ''}`}
+              onClick={() => onViewChange('operations')}
+            >
+              Recovery Operations
+            </button>
+            <button 
+              className={`view-btn ${currentView === 'results' ? 'active' : ''}`}
+              onClick={() => onViewChange('results')}
+            >
+              Results
+            </button>
+          </nav>
+        ) : (
+          <div className="brand-title">Recovery Operations</div>
+        )}
       </div>
       <div className="header-meta">
         <div className="env-pill">

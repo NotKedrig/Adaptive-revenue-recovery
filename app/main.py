@@ -37,12 +37,15 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     logger.info(
         "Application startup",
         extra={
-            "llm_provider": settings.llm_provider,
-            "llm_model_name": settings.llm_model_name,
-            "llm_temperature": settings.llm_temperature,
-            "embedding_model_name": settings.embedding_model_name,
+            # Recovery engine uses local deterministic rule-based agents.
+            # No external LLM calls are made during normal recovery workflow operation.
+            "recovery_engine": "local",
+            "simulation_mode": "deterministic",
+            "external_llm_calls": False,
+            # LLM provider config is present in settings for optional/future use
+            # but is NOT invoked by the active recovery workflow (force_local=True).
+            "llm_provider_config": settings.llm_provider,
             "database_url": settings.database_url.split("@")[-1],  # hide credentials
-            "chroma_persist_dir": settings.chroma_persist_dir,
             "log_dir": settings.log_dir,
         },
     )
@@ -140,19 +143,12 @@ async def health_status():
         logger.error(f"Scheduler health check failed: {e}")
         scheduler_ok = False
         
-    gemini_ok = True
-    try:
-        from app.llm.provider import get_provider
-        provider = get_provider()
-        if not provider:
-            gemini_ok = False
-    except Exception as e:
-        logger.error(f"LLM health check failed: {e}")
-        gemini_ok = False
-        
     return {
         "database": db_ok,
         "knowledge_base": kb_ok,
         "scheduler": scheduler_ok,
-        "gemini": gemini_ok
+        # The recovery workflow is fully local and deterministic.
+        # No external LLM calls are made by the active recovery pipeline.
+        "recovery_engine": "local",
+        "external_llm_calls": False,
     }

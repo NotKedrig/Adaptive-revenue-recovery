@@ -1,4 +1,10 @@
-export function formatINR(amount: number): string {
+export function formatINR(amount: number, showDecimals = false): string {
+  if (showDecimals) {
+    return `₹${amount.toLocaleString("en-IN", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  }
   const rounded = Math.round(amount);
   return `₹${rounded.toLocaleString("en-IN")}`;
 }

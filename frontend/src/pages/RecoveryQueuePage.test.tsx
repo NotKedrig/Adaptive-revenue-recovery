@@ -3,7 +3,7 @@ import { cleanup, render, screen, waitFor, within } from "@testing-library/react
 import userEvent from "@testing-library/user-event";
 import { RecoveryQueuePage } from "./RecoveryQueuePage";
 import * as api from "../services/api";
-import type { Metrics, QueueItem, TimelineEvent } from "../types/recovery";
+import type { BaselineComparison, Metrics, QueueItem, TimelineEvent } from "../types/recovery";
 
 vi.mock("../services/api", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../services/api")>();
@@ -16,6 +16,7 @@ vi.mock("../services/api", async (importOriginal) => {
     getCaseTimeline: vi.fn(),
     advanceRecovery: vi.fn(),
     loadDemoData: vi.fn(),
+    getBaselineComparison: vi.fn(),
   };
 });
 
@@ -105,6 +106,18 @@ describe("RecoveryQueuePage", () => {
       message: "Demo data loaded. 3 recovery scenarios ready.",
       case_ids: [nsf.case_id, tech.case_id, perm.case_id],
     });
+    const mockBaseline: BaselineComparison = {
+      case_count: 40,
+      total_revenue_at_risk: 409754.8,
+      naive: { recovered_revenue: 145460.02, recovery_rate_percent: 35.5 },
+      adaptive: { recovered_revenue: 195499.98, recovery_rate_percent: 47.71 },
+      improvement_percentage_points: 12.21,
+      additional_revenue_recovered: 50039.96,
+      evaluation_seed: 777,
+      external_llm_calls: false,
+      simulation_mode: "deterministic",
+    };
+    mocked.getBaselineComparison.mockResolvedValue(mockBaseline);
   });
 
   it("renders the three primary metrics and the live queue", async () => {
@@ -322,4 +335,5 @@ describe("RecoveryQueuePage", () => {
     // No recovery button
     expect(within(workspace).queryByRole("button", { name: /Run recovery|Advance recovery/ })).toBeNull();
   });
+
 });

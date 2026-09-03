@@ -1,5 +1,6 @@
 import type {
   AdvanceResult,
+  BaselineComparison,
   DemoPopulateResult,
   Metrics,
   QueueItem,
@@ -68,4 +69,8 @@ export function advanceRecovery(caseId: string): Promise<AdvanceResult> {
 
 export function loadDemoData(): Promise<DemoPopulateResult> {
   return request<DemoPopulateResult>("/api/demo/populate", { method: "POST" });
+}
+
+export function getBaselineComparison(): Promise<BaselineComparison> {
+  return request<BaselineComparison>("/api/baseline-comparison");
 }

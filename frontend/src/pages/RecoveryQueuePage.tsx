@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { Header } from "../components/layout/Header";
 import { MetricsStrip } from "../components/metrics/MetricsStrip";
+import { BaselineCallout } from "../components/metrics/BaselineCallout";
 import { RecoveryCaseRow } from "../components/recovery/RecoveryCaseRow";
 import { CaseWorkspace } from "../components/recovery/CaseWorkspace";
 import { Toast } from "../components/feedback/Toast";
@@ -9,21 +10,17 @@ import { EmptyState } from "../components/feedback/EmptyState";
 import { LoadingState } from "../components/feedback/LoadingState";
 import { useRecoveryConsole } from "../hooks/useRecoveryConsole";
 
-export function RecoveryQueuePage() {
+interface Props {
+  currentView?: "operations" | "results";
+  onViewChange?: (view: "operations" | "results") => void;
+  darkMode?: boolean;
+  onToggleTheme?: () => void;
+}
+
+export function RecoveryQueuePage({ currentView, onViewChange, darkMode = false, onToggleTheme }: Props) {
   const consoleState = useRecoveryConsole();
   const [tab, setTab] = useState<"active" | "recovered">("active");
   const [confirmReset, setConfirmReset] = useState(false);
-  const [darkMode, setDarkMode] = useState(() => {
-    return document.documentElement.getAttribute("data-theme") === "dark";
-  });
-
-  const toggleTheme = useCallback(() => {
-    setDarkMode((prev) => {
-      const next = !prev;
-      document.documentElement.setAttribute("data-theme", next ? "dark" : "light");
-      return next;
-    });
-  }, []);
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -42,7 +39,9 @@ export function RecoveryQueuePage() {
         resetting={consoleState.demoLoading}
         onReset={() => setConfirmReset(true)}
         darkMode={darkMode}
-        onToggleTheme={toggleTheme}
+        onToggleTheme={onToggleTheme || (() => {})}
+        currentView={currentView}
+        onViewChange={onViewChange}
       />
 
       <main className={`page ${consoleState.selected ? "subdued" : ""}`}>
