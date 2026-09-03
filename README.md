@@ -111,6 +111,7 @@ python -m venv .venv
 ```bash
 # In a new terminal, start the Vite development server
 cd frontend
+npm install
 npm run dev
 ```
 
@@ -122,7 +123,6 @@ npm run dev
 
 # Frontend tests
 cd frontend
-npm install
 npm test
 ```
 
