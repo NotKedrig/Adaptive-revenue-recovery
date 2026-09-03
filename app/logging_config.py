@@ -1,5 +1,5 @@
 """
-app/logging_config.py — Structured logging setup for the VITian Chatbot POC.
+app/logging_config.py — Structured logging setup for the AI Revenue Recovery System Local POC.
 
 Features:
 - JSON-structured log records (via `python-json-logger`) written to stdout
@@ -20,7 +20,7 @@ from pathlib import Path
 
 
 # ---------------------------------------------------------------------------
-# Fallback formatter (pure stdlib — no pythonjsonlogger dependency in Phase 0)
+# Fallback formatter (pure stdlib — no pythonjsonlogger dependency)
 # ---------------------------------------------------------------------------
 
 class _StructuredFormatter(logging.Formatter):

@@ -96,9 +96,14 @@ This prototype is engineered for absolute reproducibility and judge transparency
 ### Backend
 
 ```bash
-# From the project root, activate the virtual environment and start the API
-.venv\Scripts\activate.bat
-uvicorn app.main:app --port 8000
+# From the project root, create a virtual environment
+python -m venv .venv
+
+# Install dependencies
+.venv\Scripts\python.exe -m pip install -r requirements.txt
+
+# Start the API
+.venv\Scripts\python.exe -m uvicorn app.main:app --port 8000
 ```
 
 ### Frontend
@@ -113,8 +118,7 @@ npm run dev
 
 ```bash
 # Backend tests
-.venv\Scripts\activate.bat
-pytest tests/ -v
+.venv\Scripts\python.exe -m pytest tests/ -v
 
 # Frontend tests
 cd frontend

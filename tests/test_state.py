@@ -5,7 +5,7 @@ tests/test_state.py - Tests for the new Revenue Recovery State.
 from app.graph.state import RecoveryState
 
 def test_recovery_state_initialization():
-    """Verify the LangGraph state can be constructed without the old VITian domain."""
+    """Verify the LangGraph state can be constructed properly."""
     
     state: RecoveryState = {
         "messages": [],

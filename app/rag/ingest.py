@@ -26,7 +26,7 @@ Each (chunking_strategy) produces a separate Chroma collection so that
 Experiment 4 can compare them using an otherwise-identical pipeline.
 Collection names follow the pattern:
     "<collection_prefix>_<chunking_strategy>"
-e.g. "vitian_kb_fixed_size" and "vitian_kb_semantic".
+e.g. "recovery_kb_fixed_size" and "recovery_kb_semantic".
 """
 
 import hashlib
@@ -104,7 +104,7 @@ def ingest_documents(
     chunk_overlap: int | None = None,
     embedding_model_name: str | None = None,
     database_url: str | None = None,
-    collection_prefix: str = "vitian_kb",
+    collection_prefix: str = "recovery_kb",
     force_reingest: bool = False,
 ) -> IngestResult:
     """

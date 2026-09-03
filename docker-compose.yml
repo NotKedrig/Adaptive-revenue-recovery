@@ -3,7 +3,7 @@
 # ============================================================
 # Services:
 #   postgres  — relational store for student state, chunk metadata, run metadata
-#   app       — FastAPI application (Phase 0: /health only)
+#   app       — FastAPI application
 #
 # ChromaDB runs in LOCAL PERSISTENT DIRECTORY mode (not as its own container).
 # The ./chroma_data directory is mounted into the app container and Chroma reads/

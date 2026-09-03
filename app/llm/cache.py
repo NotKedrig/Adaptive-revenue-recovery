@@ -1,5 +1,5 @@
 """
-app/llm/cache.py — LLM response cache (Phase 0).
+app/llm/cache.py — LLM response cache.
 
 Stores and retrieves LLM responses keyed by (prompt_hash, model, temperature)
 using a local SQLite database.  This allows experiment re-runs to avoid

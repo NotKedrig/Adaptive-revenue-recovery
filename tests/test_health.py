@@ -1,5 +1,5 @@
 """
-tests/test_health.py — Phase 0: trivial smoke test for the /health endpoint.
+tests/test_health.py — Trivial smoke test for the /health endpoint.
 
 Uses FastAPI's TestClient (backed by httpx) so no running server is needed.
 """

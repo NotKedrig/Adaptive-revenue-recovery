@@ -7,7 +7,7 @@ Provides:
   - create_tables(): create all ORM-mapped tables (idempotent).
 
 Uses SQLite for testing (no Postgres required in CI) via the DATABASE_URL env var.
-In production use: DATABASE_URL=postgresql://vitian:vitian_pw@localhost:5432/vitian_chatbot
+In production use: DATABASE_URL=postgresql://recovery:recovery_pw@localhost:5432/revenue_recovery
 """
 
 import logging
