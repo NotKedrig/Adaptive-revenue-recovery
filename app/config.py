@@ -107,10 +107,10 @@ class Settings(BaseSettings):
     # ------------------------------------------------------------------
 
     database_url: str = Field(
-        default="postgresql://recovery:recovery_pw@localhost:5432/revenue_recovery",
+        default="sqlite:///recovery_dev.db",
         description=(
-            "SQLAlchemy-compatible PostgreSQL connection URL.  The Docker Compose "
-            "default matches the credentials in docker-compose.yml."
+            "SQLAlchemy-compatible connection URL. Defaults to the local SQLite demo "
+            "database. Docker Compose overrides this to use PostgreSQL."
         ),
     )
 
