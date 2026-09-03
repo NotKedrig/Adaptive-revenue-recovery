@@ -1,0 +1,25 @@
+graph TD
+    classDef default fill:#ffffff,stroke:#0d233a,stroke-width:2px,color:#0d233a
+    classDef decision fill:#eef2f5,stroke:#0d233a,stroke-width:2px,color:#0d233a
+    classDef action fill:#ffffff,stroke:#d83b01,stroke-width:2px,color:#d83b01
+    classDef startend fill:#0d233a,stroke:#0d233a,stroke-width:2px,color:#ffffff
+
+    START((PAYMENT FAILURE)):::startend --> RISK[REVENUE AT RISK]
+    RISK --> DIAGNOSIS
+    
+    DIAGNOSIS{What caused<br/>the failure?}:::decision
+    DIAGNOSIS --> STRATEGY
+    
+    STRATEGY{What should<br/>we try?}:::decision
+    STRATEGY --> POLICY
+    
+    POLICY{POLICY GUARD<br/>Max Attempts /<br/>Stopping Rules}:::decision
+    POLICY -- Allowed --> ACTION[RECOVERY ACTION]:::action
+    POLICY -- Blocked --> ESCALATE((ESCALATION)):::startend
+    
+    ACTION --> OUTCOME{OUTCOME DETECTION}:::decision
+    OUTCOME -- Recovered --> STOP((SUCCESS)):::startend
+    OUTCOME -- Not Recovered --> ADAPT[ADAPTIVE PLANNER]
+    
+    ADAPT --> NEXT[NEXT STRATEGY]
+    NEXT --> POLICY

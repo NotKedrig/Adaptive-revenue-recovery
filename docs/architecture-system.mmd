@@ -1,0 +1,40 @@
+graph TD
+    %% Styling
+    classDef ui fill:#ffffff,stroke:#0d233a,stroke-width:2px,color:#0d233a
+    classDef api fill:#f8f9fa,stroke:#0d233a,stroke-width:2px,color:#0d233a
+    classDef engine fill:#eef2f5,stroke:#0d233a,stroke-width:2px,color:#0d233a
+    classDef store fill:#ffffff,stroke:#d83b01,stroke-width:2px,color:#d83b01
+    
+    subgraph Frontend ["React / Vite UI"]
+        UI_OPS["Recovery Operations"]:::ui
+        UI_WORKSPACE["Case Workspace"]:::ui
+        UI_RESULTS["Results"]:::ui
+    end
+
+    subgraph Backend ["FastAPI"]
+        API_CASES["/api/cases"]:::api
+        API_METRICS["/api/metrics"]:::api
+        API_TIMELINE["/api/.../timeline"]:::api
+        API_BASE["/api/baseline-comparison"]:::api
+    end
+
+    subgraph Workflow ["Recovery Workflow (LangGraph)"]
+        direction TB
+        W_INTAKE["Intake"]:::engine
+        W_DIAGNOSIS["Diagnosis"]:::engine
+        W_STRATEGY["Strategy"]:::engine
+        W_POLICY["Policy Guard"]:::engine
+        W_ACTION["Recovery Action"]:::engine
+        W_OUTCOME["Outcome Detection"]:::engine
+        W_PLANNER["Adaptive Planner"]:::engine
+    end
+
+    subgraph Core ["Infrastructure"]
+        SIMULATION["Local Simulation Engine"]:::store
+        DB["SQLite / Events Audit Trail"]:::store
+    end
+
+    Frontend --> Backend
+    Backend --> Workflow
+    Workflow --> SIMULATION
+    Workflow --> DB
