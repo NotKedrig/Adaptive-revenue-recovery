@@ -1,43 +1,146 @@
 # Adaptive Payment Revenue Recovery Agent
 
-## Problem
-Payment failures do not all require the same recovery action. Naive approaches simply retry all failed transactions on a fixed schedule, ignoring the underlying context of the failure. This results in lost revenue, unnecessary technical strain, and poor customer experience.
+"An adaptive agent that diagnoses failed payments, chooses bounded recovery actions, and adapts or escalates based on the outcome."
 
-## Solution
-This system diagnoses the exact payment failure, selects a bounded intervention strategy, executes it, observes the outcome, adapts when appropriate, and stops or escalates when recovery is not viable.
+## The Problem
 
-## Key Capabilities
-- **Failure Diagnosis**: Distinguishes between transient technical, transient customer, and permanent failures.
-- **Strategy Selection**: Dynamically creates a plan of action based on the diagnosis context.
-- **Policy Guard**: Enforces strict business rules (e.g., max attempts, no retries on permanent failures).
-- **Bounded Recovery**: Executes single-step deterministic recovery actions (retries, customer notifications).
-- **Outcome Detection**: Assesses whether the recovery attempt succeeded or failed.
-- **Adaptive Recovery**: Modifies follow-up strategies based on preceding outcomes (e.g., retrying after customer action).
-- **Escalation**: Gracefully stops and routes to a human operator when automated recovery fails.
-- **Audit Trail**: Maintains full event-sourcing visibility for human operators.
-- **Deterministic Simulation**: A robust local engine that reliably simulates payment environments.
-- **Baseline Comparison**: An objective evaluation harness comparing strategies using Common Random Numbers (CRN).
+Payment failures have different causes and therefore should not all receive the same recovery treatment. 
 
-## Evidence
-A 40-case deterministic simulation comparing this adaptive approach to a standard naive retry strategy:
+A blind retry strategy can:
+- Fail repeatedly on unrecoverable errors.
+- Waste recovery opportunities on transient customer issues.
+- Create unnecessary customer friction.
+- Be inappropriate or non-compliant for permanent failures.
 
-| Metric | Naive Retry | Adaptive Recovery |
-| --- | --- | --- |
-| Recovery Rate | 21.65% | 55.45% |
-| Recovered Revenue | ₹88,727.76 | ₹227,205.47 |
+This system treats payment revenue recovery as a closed-loop decision process, ensuring that every intervention is context-aware and safely bounded.
 
-**Improvement**: +33.8 percentage points  
-**Additional Revenue**: ₹138,477.71
+## The Solution
 
-*(Note: This represents product-level simulated evidence, not real production revenue.)*
+When a payment fails, the system orchestrates a core recovery loop:
 
-## Runtime
-- **Fully Local & Deterministic**: The core recovery pipeline uses highly reliable local execution.
-- **No External LLMs Required**: The active recovery workflow does not depend on ChatGPT, Claude, or any external LLM APIs, ensuring predictable outcomes and no latency/cost bottlenecks.
-- **No Real Transactions**: This is a simulated environment; no real money is moved or processed.
+- **Detect**: Identifies the failure and calculates revenue at risk.
+- **Diagnose**: Categorizes the root cause (e.g., transient technical, transient customer, permanent).
+- **Decide**: Selects the optimal recovery strategy based on the diagnosis context.
+- **Act**: Executes a bounded recovery action governed by strict policy rules.
+- **Observe**: Detects the outcome of the action.
+- **Adapt / Stop**: Dynamically changes follow-up strategies based on preceding outcomes, or escalates safely when recovery is impossible.
+
+## Why This Fits Razorpay Track 03
+
+This project directly implements the Track 03 objective: *"Find revenue that's slipping away and win it back."*
+
+- **Detect revenue at risk**: Captures failed payments and aggregates the total monetary value at risk.
+- **Diagnose failure**: Automatically categorizes reasons behind the failure (e.g., `bank_timeout`, `invalid_card`).
+- **Determine intervention**: Strategically chooses actions like an `immediate_retry` or `notify_customer`.
+- **Execute bounded recovery**: Each step is a distinct action in a simulated environment; the agent pauses to observe outcomes.
+- **Observe outcome**: Monitors responses, such as a simulated customer top-up.
+- **Adapt**: Modifies follow-up strategies (e.g., retrying after customer action).
+- **Stop/Escalate**: Applies strict policy guards to prevent retries on permanent failures.
+- **Audit**: Event-sourced timeline capturing every decision and policy check.
+- **Measure recovered revenue**: Evaluated via a 40-case simulation to prove measurable ROI.
+
+## How It Works
+
+Three representative scenarios demonstrate the agent's behavior:
+
+1. **`bank_timeout`**: Diagnosed as a transient technical failure → Executes immediate retry → Recovers seamlessly.
+2. **`insufficient_funds`**: Diagnosed as a transient customer failure → Customer notification → Simulated customer response/top-up → Adaptive planner recognizes the signal → Retry → Recovers.
+3. **`invalid_card`**: Diagnosed as a permanent failure → Policy guard blocks recovery → Clean escalation to a human operator (no blind retries attempted).
 
 ## Architecture
-Built around a LangGraph-inspired state machine and event-sourced persistence:
-- **Agents (`app/agents/`)**: Individual state transition modules (Intake, Diagnosis, Strategy, Policy, Action, Outcome, Adaptive Planner).
-- **Simulation Engine (`app/simulation/`)**: A deterministic mock Razorpay/banking environment capable of modeling customer behavior and bank latency.
-- **Frontend (`frontend/`)**: A modern React-based operational console providing live queue visibility, full vertical timeline audit trails, and deterministic evaluation results.
+
+The system is built on a modern architecture prioritizing transparency and event-sourced auditing.
+
+![System Architecture](docs/architecture-system.png)
+
+## Recovery Decision Loop
+
+![Recovery Loop](docs/recovery-loop.png)
+
+## Measured Evidence
+
+To validate the adaptive strategy, we ran a deterministic 40-case product simulation comparing it to a naive baseline (one immediate retry).
+
+| Metric | Naive Retry | Adaptive Recovery |
+|---|---:|---:|
+| Cases | 40 | 40 |
+| Revenue at Risk | ₹409,754.80 | ₹409,754.80 |
+| Revenue Recovered | ₹88,727.76 | ₹227,205.47 |
+| Recovery Rate | 21.65% | 55.45% |
+
+**+33.8 percentage points**
+
+**₹138,477.71 additional simulated revenue recovered**
+
+*(Deterministic 40-case product simulation. This is directional product-level evidence, not a statistically significant experiment.)*
+
+## Safety and Recovery Boundaries
+
+- **Policy Guard**: Intercepts actions to enforce business logic before execution.
+- **Bounded Attempts**: Strict max limits on how many times an action can be attempted.
+- **Idempotency**: Prevents duplicate recovery actions on the same state.
+- **Permanent Failure Stopping**: Immediately halts unrecoverable errors (e.g., expired cards).
+- **Escalation**: Routes unrecoverable cases to a human operator.
+- **Audit Trail**: Every decision is logged in a centralized timeline for complete visibility.
+
+## Runtime and Reproducibility
+
+This prototype is engineered for absolute reproducibility and judge transparency during the buildathon:
+- **Local Deterministic Simulation**: Uses Common Random Numbers (CRN) with fixed case-level seeds to ensure identical conditions for the baseline and adaptive agents.
+- **Synthetic Payment Cases**: No real money movement or production payment processing is involved.
+- **No External LLM/API Calls**: The runtime executes via deterministic, rule-based fallback logic. There are no latency, key management, or ChatGPT dependency bottlenecks.
+- **No External Services Required**: The entire demo runs locally.
+
+## Running Locally
+
+### Backend
+
+```bash
+# From the project root, activate the virtual environment and start the API
+.venv\Scripts\activate.bat
+uvicorn app.main:app --port 8000
+```
+
+### Frontend
+
+```bash
+# In a new terminal, start the Vite development server
+cd frontend
+npm run dev
+```
+
+### Tests
+
+```bash
+# Backend tests
+.venv\Scripts\activate.bat
+pytest tests/ -v
+
+# Frontend tests
+cd frontend
+npm test
+```
+
+### Demo
+
+The application ships with a pre-seeded deterministic database. If you wish to reset the demo state back to the original 3 representative cases, click the **"Reset demo"** button in the top right corner of the Recovery Operations dashboard.
+
+## Demo Flow
+
+1. **Recovery Operations**: View the live queue and "Revenue at Risk".
+2. **`insufficient_funds` case**: Open the Case Workspace to see the adaptive recovery flow (Notification → Top-up → Retry).
+3. **`invalid_card` case**: See the escalation path where the Policy Guard correctly blocks any further retries.
+4. **Results page**: Toggle to the Results view to review the 40-case evaluation (+33.8 pp improvement).
+
+## Limitations and Production Path
+
+This buildathon prototype currently uses:
+- Synthetic cases
+- Simulated payment outcomes
+- Deterministic probabilities
+- Local execution
+
+A production integration would replace these mocks:
+- **Simulation** → Replaced by real Razorpay payment/subscription events (Webhooks).
+- **Simulated Recovery Action** → Replaced by bounded Razorpay API retry requests or real customer communication workflows.
+- **Synthetic Outcomes** → Replaced by real payment outcomes and asynchronous webhook events.
